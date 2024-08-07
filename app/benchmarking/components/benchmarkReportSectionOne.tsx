@@ -437,9 +437,9 @@ function BenchmarkReportSectionOne(props: BenchmarkReportProps) {
 
   return (
     <article
-      className="h-full w-full text-moongray-300 text-[0.9rem] bg-moongray-9400
+      className="h-full w-full text-moongray-300 text-[0.9rem]
       rounded-lg "
-      style={{ color: '#bcb9c0' }}>
+      style={{ color: '#bcb9c0', backgroundColor: '#464349' }}>
       <header className="p-6">
         <ReportLogo
           width={280}
