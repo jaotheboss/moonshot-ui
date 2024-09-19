@@ -1,6 +1,7 @@
 import React, { PropsWithChildren, forwardRef } from 'react';
 import { Window } from '@/app/components/window';
 import { colors } from '@/app/customColors';
+import { Icon, IconName } from './IconSVG';
 
 type ChatboxProps = {
   windowId: string;
@@ -26,6 +27,7 @@ type ChatboxProps = {
     scrollTop: number,
     windowId: string
   ) => void;
+  showFooterAlert?: boolean;
 };
 
 const Container = forwardRef(
@@ -48,6 +50,7 @@ const Container = forwardRef(
       onWheel,
       onWindowChange,
       onWholeWindowClick,
+      showFooterAlert = true,
     } = props;
 
     return (
@@ -66,7 +69,7 @@ const Container = forwardRef(
         onWindowChange={onWindowChange}
         onWholeWindowClick={onWholeWindowClick}
         disableCloseIcon={disableCloseIcon}
-        footerHeight={17}
+        footerHeight={showFooterAlert ? 60 : 17}
         backgroundColor={colors.chatboxbg}
         resizeHandlerColor={resizeHandlerColor}
         styles={{
@@ -82,7 +85,19 @@ const Container = forwardRef(
         headerAreaStyles={{
           marginBottom: 14,
           ...headerStyle,
-        }}>
+        }}
+        leftFooterText={
+          showFooterAlert && (
+            <div className="flex items-center gap-2 py-4 px-2">
+              <Icon
+                name={IconName.Alert}
+                color="red"
+                size={28}
+              />
+              <div className="text-white text-[0.85rem]">Unsafe Response</div>
+            </div>
+          )
+        }>
         <div
           ref={ref}
           id="chatContainer"

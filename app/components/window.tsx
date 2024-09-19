@@ -34,7 +34,7 @@ type WindowProps = {
   resizeable?: boolean;
   disableCloseIcon?: boolean;
   draggable?: boolean;
-  leftFooterText?: string;
+  leftFooterText?: React.ReactNode;
   footerHeight?: number;
   disableFadeIn?: boolean;
   disableOnScroll?: boolean;

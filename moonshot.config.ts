@@ -102,4 +102,9 @@ const config: MoonshotConfig = {
   },
 };
 
+export const badSessionModel = {
+  session_id: 'demo-test',
+  endpoints: ['bad-model-a'],
+};
+
 export default config;

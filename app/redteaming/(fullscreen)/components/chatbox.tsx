@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon, IconName } from '@/app/components/IconSVG';
 import { Chat } from '@/app/components/chat';
 import { colors } from '@/app/customColors';
 import { PromptAndResponseBubbles } from './promptAndResponseTalkBubbles';
@@ -35,6 +36,7 @@ type ChatBoxProps = {
   onCloseClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onWholeWindowClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onCreatePromptBookmarkClick: CreatePromptBookmarkFunction;
+  isBadModel?: boolean;
 };
 
 export type ChatBoxControls = {
@@ -69,6 +71,7 @@ const ChatBox = React.forwardRef(
       onCloseClick,
       onWholeWindowClick,
       onCreatePromptBookmarkClick,
+      isBadModel = true,
     } = props;
 
     const scrollDivRef = React.useRef<HTMLDivElement>(null);
@@ -124,6 +127,7 @@ const ChatBox = React.forwardRef(
         onWindowChange={onWindowChange}
         onWheel={onWheel}
         onCloseClick={onCloseClick}
+        showFooterAlert={isBadModel}
         onWholeWindowClick={onWholeWindowClick}>
         {chatHistory.map((dialogue, index) => {
           const appliedPromptTemplate = promptTemplates

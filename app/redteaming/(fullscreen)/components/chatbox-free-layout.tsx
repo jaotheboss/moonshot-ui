@@ -8,6 +8,7 @@ import {
 } from '@/app/lib/window-utils';
 import useChatboxesPositionsUtils from '@/app/redteaming/(fullscreen)/hooks/useChatboxesPositionsUtils';
 import { useAppSelector } from '@/lib/redux';
+import { badSessionModel } from '@/moonshot.config';
 import { ChatBox, ChatBoxControls } from './chatbox';
 
 const minimizedStyle = {
@@ -142,6 +143,10 @@ const ChatboxFreeLayout = React.forwardRef(
                 isMinimized ? handleMaximizeClick(getWindowId(id)) : undefined
               }
               onCreatePromptBookmarkClick={handleCreatePromptBookmarkClick}
+              isBadModel={
+                badSessionModel.session_id === chatSession.session.session_id &&
+                badSessionModel.endpoints.includes(id)
+              }
             />
           ) : null;
         })}
