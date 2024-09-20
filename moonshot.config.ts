@@ -32,7 +32,7 @@ const config: MoonshotConfig = {
     'common-risk-easy',
     'common-risk-hard',
   ],
-  cookbooksOrder: ['singapore-context', 'mlc-ai-safety'],
+  cookbooksOrder: ['singapore-context', 'clcc-cookbook', 'mlc-ai-safety'],
   cookbookTags: {
     'common-risk-easy': [
       'Bias',
@@ -70,6 +70,12 @@ const config: MoonshotConfig = {
       'Tamil comprehension',
       'Tamil generation',
       'Tamil literature',
+    ],
+    'clcc-cookbook': [
+      'Capability',
+      'Chinese Language',
+      'Question Answering',
+      'General Chatbot',
     ],
   },
   cookbookCategoriesTabs: [
