@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { downloadHtmlReport } from '@/app/benchmarking/utils/reportDownloader';
+import { downloadHtmlReport, generateAndDownloadPdf } from '@/app/benchmarking/utils/reportDownloader';
 import { Button, ButtonType } from '@/app/components/button';
 import { LoadingAnimation } from '@/app/components/loadingAnimation';
 import { MainSectionSurface } from '@/app/components/mainSectionSurface';
@@ -66,6 +66,12 @@ function BenchmarkReportViewer() {
                 mode={ButtonType.OUTLINE}
                 text="Download HTML Report"
                 onClick={() => downloadHtmlReport(id)}
+                hoverBtnColor={colors.moongray[800]}
+              />
+              <Button
+                mode={ButtonType.OUTLINE}
+                text="Download PDF Report"
+                onClick={() => generateAndDownloadPdf(id)}
                 hoverBtnColor={colors.moongray[800]}
               />
             </section>
