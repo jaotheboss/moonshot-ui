@@ -8,7 +8,9 @@ import { Icon, IconName } from '@/app/components/IconSVG';
 import { Button, ButtonType } from '@/app/components/button';
 import { Modal } from '@/app/components/modal';
 import { TextInput } from '@/app/components/textInput';
+import { Tooltip, TooltipPosition } from '@/app/components/tooltip';
 import { colors } from '@/app/customColors';
+import { getEndpointsFromRequiredConfig } from '@/app/lib/getEndpointsFromRequiredConfig';
 import { Step } from './enums';
 import { SelectedRecipesPills } from './selectedRecipesPills';
 
@@ -39,6 +41,9 @@ function RecipesViewList({
     }
     return recipes.find((att) => att.id === id) || recipes[0];
   });
+  const selectedRecipeRequiredEndpoints = getEndpointsFromRequiredConfig(
+    selectedRecipe.required_config
+  );
   const [selectedCookbook, setSelectedCookbook] = React.useState<Cookbook>(
     () => cookbooks[0]
   );
@@ -141,6 +146,9 @@ function RecipesViewList({
           <ul className="divide-y divide-moongray-700 pr-1 overflow-y-auto custom-scrollbar">
             {filteredRecipes.map((recipe) => {
               const isSelected = recipe.id === selectedRecipe.id;
+              const requiredEndpoints = getEndpointsFromRequiredConfig(
+                recipe.required_config
+              );
               return (
                 <li
                   key={recipe.id}
@@ -167,9 +175,36 @@ function RecipesViewList({
                       <h4 className="text-[1rem] font-semibold">
                         {recipe.name}
                       </h4>
+                      {requiredEndpoints.length > 0 && (
+                        <Tooltip
+                          position={TooltipPosition.right}
+                          offsetLeft={10}
+                          content={
+                            <div className="p-1 pt-0">
+                              <h3 className="text-black font-bold mb-2">
+                                This benchmark requires the following:
+                              </h3>
+                              <ul className="text-moonpurple list-disc pl-4">
+                                {requiredEndpoints.map((endpoint) => (
+                                  <li key={endpoint}>{endpoint}</li>
+                                ))}
+                              </ul>
+                              <p className="text-black mt-2">
+                                Please input the token for the endpoint(s)
+                                before running.
+                              </p>
+                            </div>
+                          }>
+                          <Icon
+                            size={22}
+                            name={IconName.SolidBox}
+                            color={colors.moonpurplelight}
+                          />
+                        </Tooltip>
+                      )}
                     </div>
                     <p
-                      className="text-[0.8rem] h-[40px] overflow-hidden text-moongray-400"
+                      className="text-[0.8rem] h-[40px] overflow-hidden text-moongray-400 break-all break-words"
                       style={ellipsisStyle}>
                       {recipe.description}
                     </p>
@@ -183,7 +218,7 @@ function RecipesViewList({
           <section
             className="text-white border border-moonwine-500 p-4 rounded-md 
             overflow-y-auto custom-scrollbar bg-moongray-800">
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 items-start">
               <Icon
                 name={IconName.File}
                 size={24}
@@ -191,6 +226,33 @@ function RecipesViewList({
               <h3 className="text-[1.2rem] font-semibold">
                 {selectedRecipe.name}
               </h3>
+              {selectedRecipeRequiredEndpoints.length > 0 && (
+                <Tooltip
+                  position={TooltipPosition.bottom}
+                  offsetLeft={10}
+                  content={
+                    <div className="p-1 pt-0">
+                      <h3 className="text-black font-bold mb-2">
+                        This benchmark requires the following:
+                      </h3>
+                      <ul className="text-moonpurple list-disc pl-4">
+                        {selectedRecipeRequiredEndpoints.map((endpoint) => (
+                          <li key={endpoint}>{endpoint}</li>
+                        ))}
+                      </ul>
+                      <p className="text-black mt-2">
+                        Please input the token for the endpoint(s) before
+                        running.
+                      </p>
+                    </div>
+                  }>
+                  <Icon
+                    size={22}
+                    name={IconName.SolidBox}
+                    color={colors.moonpurplelight}
+                  />
+                </Tooltip>
+              )}
             </div>
             <p className="text-[0.95rem] mb-4">{selectedRecipe.description}</p>
             <h4 className="text-[1.15rem] font-semibold mt-10 mb-2">
@@ -225,10 +287,6 @@ function RecipesViewList({
                     );
                   })}
             </p>
-            <h4 className="text-[1.15rem] font-semibold mt-10 mb-2">Prompts</h4>
-            <p className="text-[0.95rem] mb-4 text-moongray-300">
-              {selectedRecipe.total_prompt_in_recipe}
-            </p>
             <h4 className="text-[1.15rem] font-semibold mt-10 mb-2">Metrics</h4>
             <p className="text-[0.95rem] mb-4 text-moongray-300">
               {selectedRecipe.metrics.length === 0
@@ -242,6 +300,18 @@ function RecipesViewList({
                       </span>
                     );
                   })}
+            </p>
+            <h4 className="text-[1.15rem] font-semibold mt-10 mb-2">
+              Number of Prompts
+            </h4>
+            <p className="text-[0.95rem] mb-4 text-moongray-300">
+              {selectedRecipe.total_prompt_in_recipe}
+            </p>
+            <h4 className="text-[1.15rem] font-semibold mt-10 mb-2">
+              Number of Datasets
+            </h4>
+            <p className="text-[0.95rem] mb-4 text-moongray-300">
+              {selectedRecipe.stats.num_of_datasets}
             </p>
           </section>
           <SelectedRecipesPills

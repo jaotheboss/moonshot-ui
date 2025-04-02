@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React from 'react';
+import React, { startTransition } from 'react';
+import { getRecipesStatsById } from '@/actions/getRecipesStatsById';
 import { Icon, IconName } from '@/app/components/IconSVG';
 import { ActionCard } from '@/app/components/actionCard/actionCard';
 import { Button, ButtonType } from '@/app/components/button';
@@ -10,16 +11,23 @@ import { Modal } from '@/app/components/modal';
 import { PopupSurface } from '@/app/components/popupSurface';
 import { colors } from '@/app/customColors';
 import { useEventSource } from '@/app/hooks/use-eventsource';
+import { useIsResponsiveBreakpoint } from '@/app/hooks/useIsResponsiveBreakpoint';
 import { useCancelBenchmarkMutation } from '@/app/services/benchmark-api-service';
 import { useGetCookbooksQuery } from '@/app/services/cookbook-api-service';
 import { useGetLLMEndpointsQuery } from '@/app/services/llm-endpoint-api-service';
 import { useGetRunnerByIdQuery } from '@/app/services/runner-api-service';
 import { useGetAllStatusQuery } from '@/app/services/status-api-service';
 import { AppEventTypes, TestStatusProgress } from '@/app/types/enums';
+import {
+  resetBenchmarkCookbooks,
+  resetBenchmarkModels,
+  useAppDispatch,
+} from '@/lib/redux';
 
 function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
   const [showRunDetails, setShowRunDetails] = React.useState(false);
   const [isCancelBtnDisabled, setIsCancelBtnDisabled] = React.useState(false);
+  const [recipesStats, setRecipesStats] = React.useState<RecipeStats[]>([]);
   const [statuses, setStatuses] = React.useState<TestStatuses | undefined>(
     () => allStatuses
   );
@@ -33,6 +41,7 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
   const [triggerCancelBenchmark, { isLoading: isCancelling }] =
     useCancelBenchmarkMutation();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const runner_id = searchParams.get('runner_id');
   const { data: runnerData } = useGetRunnerByIdQuery(
@@ -46,12 +55,15 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
   const { data: cookbooksData } = useGetCookbooksQuery(
     {
       ids:
-        runnerData && runnerData.runner_args
+        runnerData &&
+        runnerData.runner_args &&
+        'cookbooks' in runnerData.runner_args
           ? runnerData.runner_args.cookbooks
           : [],
     },
     { skip: !runnerData }
   );
+  const screenSize = useIsResponsiveBreakpoint();
 
   React.useEffect(() => {
     if (!statuses) return;
@@ -78,10 +90,81 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
   }, [isLoading]);
 
   React.useEffect(() => {
+    dispatch(resetBenchmarkCookbooks());
+    dispatch(resetBenchmarkModels());
     return () => {
       closeEventSource();
     };
   }, []);
+
+  React.useEffect(() => {
+    if (!cookbooksData) return;
+    startTransition(() => {
+      getRecipesStatsById(
+        cookbooksData.reduce((allRecipes, cookbook) => {
+          allRecipes.push(...cookbook.recipes);
+          return allRecipes;
+        }, [] as string[])
+      ).then((result) => {
+        if (result.status === 'error') {
+          console.log(result.message);
+          setRecipesStats([]);
+        } else {
+          setRecipesStats(result.data);
+        }
+      });
+    });
+  }, [cookbooksData]);
+
+  const calcPercentageAtEachDataset = true;
+
+  const userInputNumOfPromptsGrandTotal = React.useMemo(() => {
+    if (runnerData?.runner_args?.prompt_selection_percentage == undefined)
+      return [0, 0];
+    const decimalFraction =
+      runnerData?.runner_args?.prompt_selection_percentage / 100;
+    return recipesStats.reduce((acc, stats) => {
+      let percentageCalculatedTotalPrompts = 0;
+      const totalPromptsFromAllDatasets = Object.values(
+        stats.num_of_datasets_prompts
+      ).reduce((sum, value) => {
+        if (calcPercentageAtEachDataset) {
+          percentageCalculatedTotalPrompts += Math.floor(
+            value * decimalFraction
+          );
+        }
+        return sum + value;
+      }, 0);
+      const grandTotalPromptsToRun =
+        stats.num_of_prompt_templates > 0
+          ? totalPromptsFromAllDatasets * stats.num_of_prompt_templates
+          : totalPromptsFromAllDatasets;
+      let userInputTotalPromptsToRun = 0;
+      if (stats.num_of_prompt_templates > 0) {
+        if (calcPercentageAtEachDataset) {
+          userInputTotalPromptsToRun =
+            percentageCalculatedTotalPrompts * stats.num_of_prompt_templates;
+        } else {
+          userInputTotalPromptsToRun =
+            decimalFraction *
+            grandTotalPromptsToRun *
+            stats.num_of_prompt_templates;
+        }
+      } else {
+        if (calcPercentageAtEachDataset) {
+          userInputTotalPromptsToRun = percentageCalculatedTotalPrompts;
+        } else {
+          userInputTotalPromptsToRun = decimalFraction * grandTotalPromptsToRun;
+        }
+      }
+      return acc + userInputTotalPromptsToRun;
+    }, 0);
+  }, [recipesStats, runnerData]);
+
+  const roundedUserInputNumOfPromptsGrandTotal = Math.max(
+    1,
+    Math.floor(userInputNumOfPromptsGrandTotal as number)
+  );
 
   const endpoints =
     endpointsData &&
@@ -131,7 +214,7 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
         </p>
       )}
       <div
-        className="w-[90%] h-[140px] items-center flex gap-4
+        className="w-[90%] h-[140px] ipad11Inch:h-[110px] ipadPro:h-[110px] items-center flex gap-4
         border border-moongray-700 px-8 rounded-[20px]">
         <div className="w-full flex flex-col gap-2">
           <p className="text-white text-[1.1rem] w-[90%]">
@@ -205,7 +288,7 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
               <Button
                 width={150}
                 mode={ButtonType.OUTLINE}
-                size="lg"
+                size={screenSize === 'sm' || screenSize === 'md' ? 'md' : 'lg'}
                 type="button"
                 hoverBtnColor={colors.moongray[700]}
                 pressedBtnColor={colors.moongray[900]}
@@ -260,9 +343,8 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
       <MainSectionSurface
         onCloseIconClick={() => router.push('/benchmarking')}
         height="100%"
-        minHeight={750}
         bgColor={colors.moongray['950']}>
-        <div className="flex flex-col items-center h-full gap-4">
+        <div className="flex flex-col items-center h-full gap-4 ipad11Inch:gap-1 ipadPro:gap-1">
           {showRunDetails && runnerData ? (
             <PopupSurface
               style={{
@@ -274,7 +356,7 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
               onCloseIconClick={() => setShowRunDetails(false)}>
               <div className="px-10 py-8 h-full">
                 <header className="text-white">
-                  <h1 className="text-[2rem] font-thin mb-2 ">Run Details</h1>
+                  <h1 className="text-[1.6rem]  mb-2 ">Run Details</h1>
                   <div className="flex flex-col gap-2 items-center">
                     <p>
                       <span className="text-moonwine-400 pr-2">Name:</span>
@@ -290,13 +372,14 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
                       <span className="text-moonwine-400 pr-2">
                         Number of prompts to run:
                       </span>
-                      {runnerData.runner_args &&
-                        runnerData.runner_args.num_of_prompts}
+                      {roundedUserInputNumOfPromptsGrandTotal}
                     </p>
                   </div>
                 </header>
                 {progressBox}
-                <div className="overflow-x-hidden overflow-y-auto custom-scrollbar px-8 mt-4 h-[320px]">
+                <div
+                  className="overflow-x-hidden overflow-y-auto custom-scrollbar px-8 mt-4
+                  h-[320px] ipad11Inch:mt-1 ipad11Inch:h-[120px] ipadPro:h-[120px]">
                   <section className="pt-6 w-full px-8 mb-5">
                     <p className="text-moonwine-400">Model Endpoints</p>
                     <div className="grid grid-cols-2 gap-10 w-full">
@@ -311,7 +394,9 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
                                 name={IconName.OutlineBox}
                                 size={20}
                               />
-                              <p className="text-[1.2rem]">{ep.name}</p>
+                              <p className="text-[1.2rem] ipad11Inch:text-[0.9rem] ipadPro:text-[0.9rem]">
+                                {ep.name}
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -332,7 +417,9 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
                                 name={IconName.OutlineBox}
                                 size={20}
                               />
-                              <p className="text-[1.2rem]">{cb.name}</p>
+                              <p className="text-[1.2rem] ipad11Inch:text-[0.9rem] ipadPro:text-[0.9rem]">
+                                {cb.name}
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -343,7 +430,7 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
             </PopupSurface>
           ) : !isLoading ? (
             <>
-              <h2 className="text-[1.6rem] font-medium tracking-wide text-white w-full text-center">
+              <h2 className="text-[1.6rem] ipad11Inch:text-[1.2rem] ipadPro:text-[1.2rem] font-medium tracking-wide text-white w-full text-center">
                 {headingText}
               </h2>
               <Button
@@ -368,8 +455,15 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
                   <div className="col-span-3 grid grid-cols-3 gap-[1.7%] w-[90%]">
                     <Link href="/redteaming/sessions/new">
                       <ActionCard
-                        height={240}
-                        iconSize={35}
+                        variant="compact"
+                        className={`${
+                          screenSize === 'sm' || screenSize === 'md'
+                            ? '!h-[170px] !p-[16px]'
+                            : '!h-[240px] !p-[16px]'
+                        }`}
+                        iconSize={
+                          screenSize === 'sm' || screenSize === 'md' ? 28 : 35
+                        }
                         cardColor={colors.moongray[800]}
                         title="Discover"
                         description="new vulnerabilities"
@@ -380,8 +474,15 @@ function BenchmarkRunStatus({ allStatuses }: { allStatuses: TestStatuses }) {
                     </Link>
                     <Link href="/benchmarking/cookbooks/new">
                       <ActionCard
-                        height={240}
-                        iconSize={35}
+                        variant="compact"
+                        className={`${
+                          screenSize === 'sm' || screenSize === 'md'
+                            ? '!h-[170px] !p-[16px]'
+                            : '!h-[240px] !p-[16px]'
+                        }`}
+                        iconSize={
+                          screenSize === 'sm' || screenSize === 'md' ? 28 : 35
+                        }
                         title="Create"
                         description="cookbooks"
                         descriptionColor={colors.moongray[300]}

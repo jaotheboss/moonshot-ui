@@ -82,6 +82,7 @@ type LLMEndpoint = {
   max_calls_per_second: number;
   max_concurrency: number;
   created_date: string;
+  model?: string;
   params?: Record<string, string | number | boolean>;
 };
 
@@ -91,9 +92,17 @@ type LLMEndpointFormValues = {
   name: string;
   uri: string;
   token: string | undefined;
+  model?: string;
   max_calls_per_second: string;
   max_concurrency: string;
   params?: string;
+};
+
+type RequiredConfig = {
+  configurations: {
+    embeddings?: string[];
+  };
+  endpoints?: string[];
 };
 
 type Cookbook = {
@@ -102,6 +111,10 @@ type Cookbook = {
   description: string;
   recipes: string[];
   total_prompt_in_cookbook: number;
+  total_dataset_in_cookbook: number;
+  required_config: RequiredConfig | null;
+  tags?: string[];
+  categories?: string[];
 };
 
 type CookbookFormValues = {
@@ -110,8 +123,17 @@ type CookbookFormValues = {
   recipes: string[];
 };
 
+type RecipeStats = {
+  num_of_tags: number;
+  num_of_datasets: number;
+  num_of_datasets_prompts: Record<string, number>;
+  num_of_prompt_templates: number;
+  num_of_metrics: number;
+  num_of_attack_modules?: number;
+};
+
 type Recipe = {
-  attack_modules: unknown[];
+  attack_modules?: string[];
   categories: string[];
   datasets: string[];
   description: string;
@@ -120,16 +142,10 @@ type Recipe = {
   metrics: string[];
   name: string;
   prompt_templates: string[];
-  stats: {
-    num_of_tags: number;
-    num_of_datasets: number;
-    num_of_datasets_prompts: Record<string, number>;
-    num_of_prompt_templates: number;
-    num_of_metrics: number;
-    num_of_attack_modules: number;
-  };
+  stats: RecipeStats;
   tags: string[];
   total_prompt_in_recipe: number;
+  required_config: RequiredConfig | null;
 };
 
 type RecipeFormValues = {
@@ -154,12 +170,14 @@ type AttackModule = {
   id: string;
   name: string;
   description: string;
+  endpoints: string[];
+  configurations: Record<string, string | number>;
 };
 
 type BenchmarkRunFormValues = {
   run_name: string;
   description: string;
-  num_of_prompts: string;
+  prompt_selection_percentage: string;
   system_prompt: string;
   runner_processing_module: 'benchmarking';
   inputs: string[];
@@ -293,6 +311,22 @@ type CookbookMetadata = {
   estTotalPromptResponseTime: number;
 };
 
+type RunnerHeading = {
+  id: string;
+  name: string;
+  description: string;
+  endpoints: string[];
+};
+
+type CookbooksRunnerArgs = {
+  cookbooks: string[];
+  prompt_selection_percentage: number;
+  random_seed: number;
+  system_prompt: string;
+  runner_processing_module: string;
+  result_processing_module: string;
+};
+
 type Runner = {
   id: string;
   run_id?: number;
@@ -300,14 +334,7 @@ type Runner = {
   name: string;
   endpoints: string[];
   description: string;
-  runner_args?: {
-    cookbooks: string[];
-    num_of_prompts: number;
-    random_seed: number;
-    system_prompt: string;
-    runner_processing_module: string;
-    result_processing_module: string;
-  };
+  runner_args?: CookbooksRunnerArgs;
   start_time?: number;
 };
 
@@ -354,4 +381,26 @@ type BookMark = {
   context_strategy?: string;
   prompt_template?: string;
   bookmark_time: string;
+};
+
+declare module 'html3pdf' {
+  interface Html3PdfOptions {
+    margin?: number;
+    filename?: string;
+    image?: { type: string; quality: number };
+    jsPDF?: { format: string; orientation: string };
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function set(options: Html3PdfOptions): unknown;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function from(element: HTMLElement): unknown;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function save(): void;
+  export = html3pdf;
+}
+
+type FastAPIError = {
+  type: string;
+  loc: string[];
+  msg: string;
 };

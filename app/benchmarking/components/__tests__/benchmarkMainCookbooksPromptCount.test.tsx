@@ -13,13 +13,20 @@ function mockRedux() {
 
 const mockCookbooksLinkClick = jest.fn();
 
-const mockCookbooks = [
+const mockCookbooks: Cookbook[] = [
   {
     id: 'cb-id-1',
     name: 'Mock Cookbook One',
     description: 'Mock description',
     recipes: ['rc-id-1'],
     total_prompt_in_cookbook: 10,
+    total_dataset_in_cookbook: 1,
+    required_config: {
+      configurations: {
+        embeddings: ['embed-endpoint-1', 'endpoint-2'],
+      },
+      endpoints: ['endpoint-1', 'endpoint-2'],
+    },
   },
   {
     id: 'cb-id-2',
@@ -27,6 +34,8 @@ const mockCookbooks = [
     description: 'Mock description',
     recipes: ['rc-id-2'],
     total_prompt_in_cookbook: 20,
+    total_dataset_in_cookbook: 2,
+    required_config: null,
   },
 ];
 
@@ -48,7 +57,7 @@ describe('BenchmarkMainCookbooksPromptCount', () => {
   });
 
   it('should show loading animation', () => {
-    const mockOneAlreadySelectedCookbooksFromState = mockCookbooks;
+    const mockOneAlreadySelectedCookbooksFromState: Cookbook[] = mockCookbooks;
     renderWithProviders(
       <BenchmarkMainCookbooksPromptCount
         selectedCookbooks={mockOneAlreadySelectedCookbooksFromState}
@@ -58,8 +67,8 @@ describe('BenchmarkMainCookbooksPromptCount', () => {
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
-  it('should show 30 prompts', () => {
-    const mockOneAlreadySelectedCookbooksFromState = mockCookbooks;
+  it('should show 30 prompts and required endpoints', () => {
+    const mockOneAlreadySelectedCookbooksFromState: Cookbook[] = mockCookbooks;
     const mockAllCookbooks = mockCookbooks;
     renderWithProviders(
       <BenchmarkMainCookbooksPromptCount
@@ -70,6 +79,20 @@ describe('BenchmarkMainCookbooksPromptCount', () => {
     );
 
     expect(screen.getByText(/30/i)).toBeInTheDocument();
+    mockCookbooks.forEach((cookbook) => {
+      if (cookbook.required_config?.endpoints?.length) {
+        cookbook.required_config.endpoints.forEach((endpoint) => {
+          expect(screen.getByText(endpoint)).toBeInTheDocument();
+        });
+      }
+      if (cookbook.required_config?.configurations?.embeddings?.length) {
+        cookbook.required_config.configurations.embeddings.forEach(
+          (endpoint) => {
+            expect(screen.getByText(endpoint)).toBeInTheDocument();
+          }
+        );
+      }
+    });
   });
 
   it('should show 20 prompts', () => {

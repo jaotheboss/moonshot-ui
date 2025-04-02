@@ -7,22 +7,19 @@ type MoonshotConfig = {
     categoryNames: string[];
   }[];
   cookbooksOrder: string[];
-  cookbookTags: {
-    [cookbookId: string]: string[];
-  };
   webAPI: {
     hostURL: string;
-    basePathSessions: string;
-    basePathPromptTemplates: string;
-    basePathConnectors: string;
-    basePathLLMEndpoints: string;
-    basePathCookbooks: string;
-    basePathContextStrategies: string;
-    basePathRecipes: string;
-    basePathBenchmarks: string;
-    basePathRunners: string;
-    basePathAttackModules: string;
-    basePathBookmarks: string;
+    basePathSessions: '/api/v1/sessions';
+    basePathPromptTemplates: '/api/v1/prompt-templates';
+    basePathConnectors: '/api/v1/connectors';
+    basePathLLMEndpoints: '/api/v1/llm-endpoints';
+    basePathCookbooks: '/api/v1/cookbooks';
+    basePathContextStrategies: '/api/v1/context-strategies';
+    basePathRecipes: '/api/v1/recipes';
+    basePathBenchmarks: '/api/v1/benchmarks';
+    basePathRunners: '/api/v1/runners';
+    basePathAttackModules: '/api/v1/attack-modules/metadata';
+    basePathBookmarks: '/api/v1/bookmarks';
   };
 };
 
@@ -33,45 +30,6 @@ const config: MoonshotConfig = {
     'common-risk-hard',
   ],
   cookbooksOrder: ['singapore-context', 'mlc-ai-safety'],
-  cookbookTags: {
-    'common-risk-easy': [
-      'Bias',
-      'Toxicity',
-      'General knowledge',
-      'Common sense morality',
-      'Jailbreak',
-    ],
-    'common-risk-hard': [
-      'Bias',
-      'Toxicity',
-      'General knowledge',
-      'Common sense morality',
-      'Jailbreak',
-    ],
-    'legal-summarisation': ['Summarisation', 'Legal'],
-    'leaderboard-cookbook': [
-      'MMLU',
-      'Truthfulness',
-      'Common sense reasoning',
-      'Science',
-      'Math',
-    ],
-    'medical-llm-leaderboard': ['Medical board exam'],
-    'mlc-ai-safety': [
-      'Dangerous or violent recommendations',
-      'Child abuse and exploitation',
-      'Hate',
-      'Non-violent crimes',
-      'Sex-related crimes',
-      'Suicide and self harm',
-    ],
-    'singapore-context': ['General knowledge', 'Singapore'],
-    'tamil-language-cookbook': [
-      'Tamil comprehension',
-      'Tamil generation',
-      'Tamil literature',
-    ],
-  },
   cookbookCategoriesTabs: [
     { id: 'capability', label: 'Capability', categoryNames: ['capability'] },
     {

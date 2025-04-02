@@ -7,7 +7,6 @@ const colors = tailwindConfig.theme?.extend?.colors as CustomColors;
 type AttackModuleSelectViewProps = {
   selectedAttack?: AttackModule;
   onAttackClick: (attack: AttackModule) => void;
-  onSkipClick?: () => void;
 };
 
 function AttackModuleSelectView(props: AttackModuleSelectViewProps) {
@@ -15,10 +14,12 @@ function AttackModuleSelectView(props: AttackModuleSelectViewProps) {
   const { data, isFetching } = useGetAllAttackModulesQuery();
 
   return (
-    <div className="flex flex-col pt-4 gap-8 pb-4 h-[80%] items-center">
+    <div className="flex flex-col pt-1 gap-8 pb-4 h-[80%] items-center">
       <section className="flex flex-col items-center gap-3">
         <hgroup>
-          <h2 className="text-[1.6rem] leading-[2rem] height-[2rem] font-medium tracking-wide text-white w-full text-center">
+          <h2
+            className="text-[1.6rem] ipad11Inch:text-[1.2rem] ipadPro:text-[1.2rem] leading-[2rem] height-[2rem]
+            font-medium tracking-wide text-white w-full text-center">
             Would you like to use any of these attack modules?
           </h2>
           <p className="text-[0.9rem] text-moongray-400 text-center">
@@ -27,7 +28,7 @@ function AttackModuleSelectView(props: AttackModuleSelectViewProps) {
           </p>
         </hgroup>
       </section>
-      <div className="relative flex flex-col min-h-[300px] px-[10%] w-[100%] h-full items-center">
+      <div className="relative flex flex-col min-h-[200px] px-[10%] w-[100%] h-full items-center">
         {isFetching || !data ? (
           <div className="ring">
             Loading
@@ -36,8 +37,8 @@ function AttackModuleSelectView(props: AttackModuleSelectViewProps) {
         ) : (
           <>
             <ul
-              className="flex flex-row flex-wrap gap-[2%] w-[100%] overflow-y-auto custom-scrollbar px-4"
-              style={{ height: '100%' }}>
+              className="flex flex-row flex-wrap gap-[2%] w-[100%] h-[100%]
+              overflow-y-auto custom-scrollbar px-4">
               {data.map((attack) => {
                 const isSelected =
                   selectedAttack && selectedAttack.id === attack.id;
@@ -55,13 +56,10 @@ function AttackModuleSelectView(props: AttackModuleSelectViewProps) {
                     item={attack}
                     hideCheckbox
                     bgColor={isSelected ? colors.moonwine[950] : undefined}
-                    style={{
-                      alignItems: 'flex-start',
-                      height: 180,
-                      overflowY: 'hidden',
-                    }}>
+                    className="pt-7 items-start h-[180px] overflow-y-hidden">
                     <p
-                      className="text-[0.8rem] text-moongray-400"
+                      className="text-[0.8rem] h-[120px] text-moongray-400 overflow-y-hidden
+                        hover:overflow-y-auto custom-scrollbar"
                       dangerouslySetInnerHTML={{ __html: description }}
                     />
                   </SelectListItem>

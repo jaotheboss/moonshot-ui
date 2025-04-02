@@ -7,7 +7,7 @@ import { formatDate } from '@/app/lib/date-utils';
 import tailwindConfig from '@/tailwind.config';
 const colors = tailwindConfig.theme?.extend?.colors as CustomColors;
 
-type EndpointSelectViewProps = {
+type EndpointSelectorProps = {
   totalSelected: number;
   selectedModels: LLMEndpoint[];
   onModelClick: (model: LLMEndpoint) => void;
@@ -15,7 +15,7 @@ type EndpointSelectViewProps = {
   onCreateClick: () => void;
 };
 
-function EndpointSelectVew(props: EndpointSelectViewProps) {
+function EndpointSelector(props: EndpointSelectorProps) {
   const {
     totalSelected,
     selectedModels,
@@ -26,13 +26,13 @@ function EndpointSelectVew(props: EndpointSelectViewProps) {
   const { models, isLoading } = useModelsList(); // todo - no need to abstract this hook. clean up
 
   return (
-    <div className="flex flex-col pt-4 gap-8 pb-4 h-[80%]">
+    <div className="flex flex-col pt-4 gap-8 pb-4 h-[95%]">
       <section className="flex flex-col items-center gap-3">
-        <h2 className="text-[1.6rem] leading-[2rem] height-[2rem] font-medium tracking-wide text-white w-full text-center">
+        <h2 className="text-[1.6rem] ipad11Inch:text-[1.2rem] ipadPro:text-[1.2rem] leading-[2rem] height-[2rem] font-medium tracking-wide text-white w-full text-center">
           {totalSelected > 0 ? (
             <>
               <span
-                className="text-[2rem] pr-2"
+                className="text-[1.6rem] ipad11Inch:text-[1.2rem] ipadPro:text-[1.2rem] pr-2"
                 style={{ color: colors.moonpurplelight }}>
                 {totalSelected}
               </span>
@@ -55,7 +55,7 @@ function EndpointSelectVew(props: EndpointSelectViewProps) {
           onClick={onCreateClick}
         />
       </section>
-      <div className="relative flex flex-col min-h-[300px] px-[10%] w-[100%] h-full items-center">
+      <div className="relative flex flex-col min-h-[200px] px-[10%] w-[100%] h-full items-center">
         {isLoading ? (
           <div className="ring">
             Loading
@@ -84,6 +84,7 @@ function EndpointSelectVew(props: EndpointSelectViewProps) {
                     </p>
                     <Button
                       text="Edit"
+                      ariaLabel={`Edit ${model.name}`}
                       width={70}
                       mode={ButtonType.OUTLINE}
                       size="sm"
@@ -125,4 +126,4 @@ function EndpointSelectVew(props: EndpointSelectViewProps) {
   );
 }
 
-export { EndpointSelectVew };
+export { EndpointSelector };

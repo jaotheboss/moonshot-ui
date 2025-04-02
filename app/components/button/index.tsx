@@ -24,10 +24,12 @@ type ButtonProps = {
   leftIconName?: IconName;
   rightIconName?: IconName;
   iconSize?: number;
+  iconColor?: string;
   disabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
   width?: React.CSSProperties['width'];
   alignContent?: 'center' | 'flex-start' | 'flex-end';
+  ariaLabel?: string;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 };
 
@@ -42,6 +44,7 @@ function Button(props: ButtonProps) {
     leftIconName,
     rightIconName,
     iconSize,
+    iconColor,
     text,
     textSize,
     textWeight,
@@ -49,6 +52,7 @@ function Button(props: ButtonProps) {
     size = 'md',
     width,
     alignContent,
+    ariaLabel,
     onClick = () => null,
   } = props;
   const [isHovered, setIsHovered] = useState(false);
@@ -83,6 +87,7 @@ function Button(props: ButtonProps) {
 
   return (
     <button
+      aria-label={ariaLabel}
       type={type}
       disabled={disabled}
       className={cssClass}
@@ -105,6 +110,7 @@ function Button(props: ButtonProps) {
         <Icon
           name={leftIconName || IconName.ArrowLeft}
           size={iconSize}
+          color={iconColor}
         />
       )}
       <span style={{ fontSize: textSize, fontWeight: textWeight }}>{text}</span>
@@ -112,6 +118,7 @@ function Button(props: ButtonProps) {
         <Icon
           name={rightIconName || IconName.ArrowRight}
           size={iconSize}
+          color={iconColor}
         />
       )}
     </button>

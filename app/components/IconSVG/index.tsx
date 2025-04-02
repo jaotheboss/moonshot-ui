@@ -20,6 +20,7 @@ import { CircleArrowRightIcon } from './icons/circle-arrow-right-icon';
 import { CloseIcon } from './icons/close-x-icon';
 import { DarkMoonIcon } from './icons/dark-moon-icon';
 import { DocumentIcon } from './icons/document-icon';
+import { DownloadIcon } from './icons/download-icon';
 import { FileIcon } from './icons/file-icon';
 import { FolderForChatSessionsIcon } from './icons/folder-chat-icon';
 import { FolderIcon } from './icons/folder-icon';
@@ -44,6 +45,8 @@ import { SpacesuitIcon } from './icons/spacesuit-icon';
 import { SquareIcon } from './icons/square-icon';
 import { TableIcon } from './icons/table-icon';
 import { TalkBubblesIcon } from './icons/talkbubbles-icon';
+import { ThinArrowLeftIcon } from './icons/thin-arrow-left';
+import { ThinArrowRightIcon } from './icons/thin-arrow-right';
 import { ToolsIcon } from './icons/tools-icon';
 import { WarningIcon } from './icons/warning-icon';
 import { WideArrowDownIcon } from './icons/wide-arrow-down';
@@ -57,6 +60,7 @@ enum IconName {
   RunCookbook,
   BurgerMenu,
   DarkMoon,
+  Download,
   LightSun,
   Close,
   CircleArrowRight,
@@ -98,6 +102,8 @@ enum IconName {
   Alert,
   WideArrowLeft,
   WideArrowRight,
+  ThinArrowRight,
+  ThinArrowLeft,
 }
 
 type IconProps = {
@@ -191,6 +197,15 @@ function Icon(props: IconProps) {
       iconToRender = (
         <DarkMoonIcon
           outlineColor={color}
+          width={size}
+          height={size}
+        />
+      );
+      break;
+    case IconName.Download:
+      iconToRender = (
+        <DownloadIcon
+          fillColor={color}
           width={size}
           height={size}
         />
@@ -443,6 +458,24 @@ function Icon(props: IconProps) {
     case IconName.HistoryClock:
       iconToRender = (
         <HistoryClockIcon
+          fillColor={color}
+          width={size}
+          height={size}
+        />
+      );
+      break;
+    case IconName.ThinArrowLeft:
+      iconToRender = (
+        <ThinArrowLeftIcon
+          fillColor={color}
+          width={size}
+          height={size}
+        />
+      );
+      break;
+    case IconName.ThinArrowRight:
+      iconToRender = (
+        <ThinArrowRightIcon
           fillColor={color}
           width={size}
           height={size}

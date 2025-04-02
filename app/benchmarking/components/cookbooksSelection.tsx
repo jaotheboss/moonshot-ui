@@ -19,6 +19,13 @@ import {
 import config from '@/moonshot.config';
 import { CookbookSelectionItem } from './cookbookSelectionItem';
 
+const descQuality =
+  "Quality evaluates the model's ability to consistently produce content that meets general correctness and application-specific standards.";
+const descCapability =
+  "Capability assesses the AI model's ability to perform within the context of the unique requirements and challenges of a particular domain or task.";
+const descTrustAndSafety =
+  'Trust & Safety addresses the reliability, ethical considerations, and inherent risks of the AI model. It also examines potential scenarios where the AI system could be used maliciously or unethically.';
+
 const CookbookAbout = dynamic(
   () => import('./cookbookAbout').then((mod) => mod.CookbookAbout),
   {
@@ -36,12 +43,19 @@ const tabItems: TabItem<string[]>[] = config.cookbookCategoriesTabs.map(
 );
 
 type Props = {
-  isThreeStepsFlow: boolean;
-  onClose: () => void;
+  onCookbookSelected: (selectedCookbooks: Cookbook[]) => void;
+  onCookbookUnselected: (selectedCookbooks: Cookbook[]) => void;
+  onCookbookAboutClick: () => void;
+  onCookbookAboutClose: () => void;
 };
 
 function CookbooksSelection(props: Props) {
-  const { onClose, isThreeStepsFlow } = props;
+  const {
+    onCookbookSelected,
+    onCookbookUnselected,
+    onCookbookAboutClick,
+    onCookbookAboutClose,
+  } = props;
   const dispatch = useAppDispatch();
   const selectedCookbooks = useAppSelector(
     (state) => state.benchmarkCookbooks.entities
@@ -59,7 +73,7 @@ function CookbooksSelection(props: Props) {
       {
         count: true,
       },
-      { skip: !isThreeStepsFlow || !isFirstCookbooksFetch }
+      { skip: !isFirstCookbooksFetch }
     );
 
   const excludedCategories = activeTab.data
@@ -112,12 +126,12 @@ function CookbooksSelection(props: Props) {
   }, [cookbooks]);
 
   useEffect(() => {
-    if (!isThreeStepsFlow || isFetchingAllCookbooks) return;
+    if (isFetchingAllCookbooks) return;
     if (isFirstCookbooksFetch && allCookbooks) {
       updateAllCookbooks(setAllCookbooks, allCookbooks);
       setIsFirstCookbooksFetch(false);
     }
-  }, [isThreeStepsFlow, isFetchingAllCookbooks, allCookbooks]);
+  }, [isFetchingAllCookbooks, allCookbooks]);
 
   function handleTabClick(tab: TabItem<string[]>) {
     setActiveTab(tab);
@@ -126,26 +140,35 @@ function CookbooksSelection(props: Props) {
   function handleCookbookSelect(cb: Cookbook) {
     if (selectedCookbooks.some((t) => t.id === cb.id)) {
       dispatch(removeBenchmarkCookbooks([cb]));
+      const updatedSelectedCookbooks = selectedCookbooks.filter(
+        (c) => c.id !== cb.id
+      );
+      onCookbookUnselected(updatedSelectedCookbooks);
     } else {
       dispatch(addBenchmarkCookbooks([cb]));
+      const updatedSelectedCookbooks = [...selectedCookbooks, cb];
+      onCookbookSelected(updatedSelectedCookbooks);
     }
   }
 
   function handleAboutClick(cb: Cookbook) {
     setCookbookDetails(cb);
+    onCookbookAboutClick();
   }
 
-  let categoryDesc = '';
-  if (activeTab.id === 'quality') {
-    categoryDesc =
-      "Quality evaluates the model's ability to consistently produce content that meets general correctness and application-specific standards.";
-  } else if (activeTab.id === 'capability') {
-    categoryDesc =
-      "Capability assesses the AI model's ability to perform within the context of the unique requirements and challenges of a particular domain or task.";
-  } else if (activeTab.id === 'trustAndSafety') {
-    categoryDesc =
-      'Trust & Safety addresses the reliability, ethical considerations, and inherent risks of the AI model. It also examines potential scenarios where the AI system could be used maliciously or unethically.';
+  function handleCloseAbout() {
+    setCookbookDetails(undefined);
+    onCookbookAboutClose();
   }
+
+  const categoryDesc =
+    activeTab.id === 'quality'
+      ? descQuality
+      : activeTab.id === 'capability'
+        ? descCapability
+        : activeTab.id === 'trustAndSafety'
+          ? descTrustAndSafety
+          : '';
 
   useEffect(() => {
     if (!cookbooks) return;
@@ -158,12 +181,12 @@ function CookbooksSelection(props: Props) {
   }, [cookbooks]);
 
   return (
-    <div className="flex flex-col pt-4 w-full h-full">
+    <div className="flex flex-col pt-4 w-full h-full z-[100]">
       {cookbookDetails ? (
         <PopupSurface
           height="100%"
           padding="10px"
-          onCloseIconClick={() => setCookbookDetails(undefined)}>
+          onCloseIconClick={handleCloseAbout}>
           <CookbookAbout
             cookbook={cookbookDetails}
             onSelectChange={handleCookbookSelect}
@@ -173,11 +196,14 @@ function CookbooksSelection(props: Props) {
           />
         </PopupSurface>
       ) : (
-        <PopupSurface
-          height="100%"
-          headerContent={
-            <section className="flex items-center justify-flex-start gap-5 pt-4">
+        <React.Fragment>
+          <section className="flex flex-col items-center justify-center gap-5 px-8">
+            <h2 className="text-[1.6rem] leading-[2rem] tracking-wide text-white w-full text-center">
+              Select the cookbooks you want to run
+            </h2>
+            <div className="flex flex-row gap-5 w-full">
               <TabsMenu
+                className="w-[445px]"
                 tabItems={tabItems}
                 barColor={colors.moongray['800']}
                 tabHoverColor={colors.moongray['700']}
@@ -186,12 +212,14 @@ function CookbooksSelection(props: Props) {
                 activeTabId={activeTab.id}
                 onTabClick={handleTabClick}
               />
-            </section>
-          }>
+              <p className="flex-1 text-white px-8 text-[0.9rem] min-h-[65px]">
+                {categoryDesc}
+              </p>
+            </div>
+          </section>
           <section
-            className="relative flex flex-col gap-7 pt-6 h-full"
-            style={{ height: 'calc(100% - 50px)' }}>
-            <p className="text-white px-8">{categoryDesc}</p>
+            className="relative flex flex-col gap-7 mt-8 h-full"
+            style={{ height: 'calc(100% - 155px)' }}>
             <ul className="flex flex-row flex-wrap grow gap-[2%] w-[100%] overflow-y-auto custom-scrollbar px-8">
               {isFetching ? (
                 <LoadingAnimation />
@@ -214,18 +242,8 @@ function CookbooksSelection(props: Props) {
                 })
               )}
             </ul>
-            <footer className="flex justify-end items-center bg-moonpurple p-2 px-5 rounded-b-2xl w-full text-white h-[52px] shrink-0">
-              {selectedCookbooks.length > 0 && (
-                <span
-                  role="button"
-                  className="text-[1.5rem] decoration-1 underline text-white cursor-pointer"
-                  onClick={onClose}>
-                  OK
-                </span>
-              )}
-            </footer>
           </section>
-        </PopupSurface>
+        </React.Fragment>
       )}
     </div>
   );
